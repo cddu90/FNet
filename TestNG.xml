@@ -1,1 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="Suite" parallel="tests" thread-count="1">
+   <!-- Data sheet location and root folder location are declared for the entire suite  -->
+   
+   	<listeners>
+		<listener class-name="com.bsc.qa.framework.listener.WebDriverListener"></listener>
+	</listeners>
+
+	<test name="FileNetTest" parallel="methods" thread-count="1">
+		<parameter name="Browser_" value="Firefox" />
+		<parameter name="Driver_"
+			value="src\test\resources\selenium_standalone_binaries\windows\marionette\32bit" />
+		<parameter name="Url_"
+			value="https://flns01.dev.bscal.local/b2filenet/faces/SignOn.jsp" />
+		<!-- <parameter name="Url_" value="https://flnh01.dev.bscal.local/b2filenet/faces/SignOn.jsp" 
+			/> -->
+		<parameter name="ImplicitWait_" value="false" />
+		<parameter name="Env_" value="FileNet_Day1" />
+		<parameter name="InputDataSheetPath_" value="src/test/resources/FileNetTestData.xlsx" />
+		<classes>
+			<class name="com.bsc.qa.web.tests.FileNetTest" />
+		</classes>
+	</test>
+
+	<test name="BlueSquareDay2ValidationUITest" parallel="methods"
+		thread-count="4">
+		<parameter name="Browser_" value="Firefox" />
+		<parameter name="Driver_"
+			value="src\test\resources\selenium_standalone_binaries\windows\marionette\32bit" />
+		<parameter name="Url_"
+			value="https://planconnexion-testxvd1.bcbs.com/blue2web" />
+		<!-- <parameter name="Url_" value="https://planconnexion-testxvh1.bcbs.com/blue2web"/> -->
+		<parameter name="ImplicitWait_" value="false" />
+		<parameter name="Env_" value="BlueSquareDay2Validation" />
+
+		<parameter name="InputDataSheetPath_" value="src/test/resources/FileNetTestData.xlsx" />
+
+		<classes>
+
+			<class name="com.bsc.qa.web.tests.FileNetTest" />
+		</classes>
+	</test> 
+
+
+</suite>
