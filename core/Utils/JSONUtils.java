@@ -1,619 +1,350 @@
+package com.bsc.qa.framework.utility;
 
-package WebUtils;
-
-import static org.testng.Assert.assertFalse;
-
-import java.awt.AWTException;
-import java.awt.Robot;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
-import java.awt.event.KeyEvent;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.ResultSet;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.Keys;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.Select;
-import org.openqa.selenium.support.ui.Wait;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-import com.relevantcodes.extentreports.ExtentTest;
-import com.relevantcodes.extentreports.LogStatus;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 /**
- * @author Sai Kiran Ayyagari
- * This class contains reusable methods to reduce the code from multiple lines to one line
+ * Utility to work with JSON
+ * 
+ * @author ainapu01
  *
  */
+public class JSONUtils {
 
-public class WebUtils {
-
-	/**
-	 * Performs the double click operation
-	 * 
-	 * @param driver
-	 *            - To perform double click operation on browser
-	 * @param element
-	 *            - The element on which double click needs to be performed
-	 */
-	public void doubleClick(WebDriver driver, WebElement element) {
-
-		Actions action = new Actions(driver);
-
-		action.moveToElement(element).doubleClick(element).perform();
-	}
+	static StringBuilder sbJsonElementInGivenJsonObject = new StringBuilder();
+	static StringBuilder sbJsonElementInGivenJsonResponse = new StringBuilder();
+	static StringBuilder sbJsonValueInGivenJsonResponse = new StringBuilder();
+	static Map<String, JsonElement> responseElements;
+	static String key = null;
+	static String value = null;
+	static JsonElement value1;
+	static String timestamp = null;
 
 	/**
-	 * Performs Right click operation
-	 * 
-	 * @param driver
-	 *            - To perform right click operation on browser
-	 * @param element
-	 *            - The element on which Right click needs to be performed
+	 * Initialize timestamo with formatting
 	 */
-	public void rightClick(WebDriver driver, WebElement element) {
-
-		Actions action = new Actions(driver);
-
-		action.contextClick(element).build().perform();
-	}
-
-	/**
-	 * Performs explicit wait to check visibility of element for a particluar
-	 * time period
-	 * 
-	 * @param driver
-	 *            - To check the visibility of element on browser
-	 * @param element
-	 *            - Element for which driver should wait
-	 * @return - returns webelement
-	 */
-	public  WebElement explicitWaitByVisibilityofElement(WebDriver driver,
-			WebElement element) {
-
-		WebElement locatedElement;
-
-		WebDriverWait wait = new WebDriverWait(driver, 30);
-
-		locatedElement = wait.until(ExpectedConditions.visibilityOf(element));
-
-		return locatedElement;
-	}
-	/**
-	 * Performs explicit wait to check visibility of element for a particluar
-	 * time period
-	 * 
-	 * @param driver
-	 *            - To check the visibility of element on browser
-	 * @param element
-	 *            - Element for which driver should wait
-	 * @return - returns webelement
-	 */
-	public void explicitWaitForVisibilityofElement(WebDriver driver,
-			String xpath) {
-
-		WebElement locatedElement;
-
-		WebDriverWait wait = new WebDriverWait(driver, 30);
-
-		 wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.xpath(xpath)));
-
-	}
-
-	/**
-	 * To capture screenshots and save the files
-	 * 
-	 * @param webdriver
-	 *            - To perform the screenshot operation on browser
-	 * @param fileWithPath
-	 *            - Destination path where file is saved
-	 * @throws Exception
-	 */
-	public void takeSnapShot(WebDriver webdriver, String fileWithPath)
-			throws Exception {
-
-		// Convert web driver object to TakeScreenshot
-
-		TakesScreenshot scrShot = ((TakesScreenshot) webdriver);
-
-		// Call getScreenshotAs method to create image file
-
-		File SrcFile = scrShot.getScreenshotAs(OutputType.FILE);
-
-		// Move image file to new destination
-
-		File DestFile = new File(fileWithPath);
-
-		// Copy file at destination
-
-		FileUtils.copyFile(SrcFile, DestFile);
-
-	}
-
-	/**
-	 * Performs wait opeartion for a particular time till element is clickable
-	 * 
-	 * @param element
-	 *            - The element on which wait operation needs to be performed
-	 *            till it is clickable
-	 */
-	public void waitUntilElementclickable(WebElement element,WebDriver driver) {
-
-		long currentTime = System.currentTimeMillis();
-		long endTime = currentTime + 60000;
-		for (int i = 0; currentTime < endTime; i++) {
-
-			try {
-				this.moveToClickableElement(element, driver);
-				//element.click();
-				break;
-
-			} catch (Exception e) {
-
-			}
-
-			currentTime = System.currentTimeMillis();
-		}
-
-	}
-
-	/**
-	 * Waits for the element till it is clickable
-	 * 
-	 * @param driver
-	 *            - To perform wait operation on the browser
-	 * @param element
-	 *            - The element for which wait is peformed
-	 * @return - returns webElement
-	 */
-	public WebElement explicitWaitByElementToBeClickable(WebDriver driver,
-			WebElement element) {
-
-		WebElement locatedElement;
-
-		WebDriverWait wait = new WebDriverWait(driver, 30);
-
-		locatedElement = wait.until(ExpectedConditions
-				.elementToBeClickable(element));
-
-		return locatedElement;
-	}
-	
-	
-
-	
-	public void explicitWaitForTheElementToBeClickable(WebDriver driver,
-			String xpath, int time) {
-
-		WebDriverWait wait = new WebDriverWait(driver, time);
-
-		 wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath)));
-
-		
-		
-	} 
-	
-	
-	 /* Waits for the element till it is clickable
-	 * 
-	 * @param driver
-	 *            - To perform wait operation on the browser
-	 * @param element
-	 *            - The element for which wait is peformed
-	 * @return - returns webElement
-	 */
-	public WebElement explicitWaitForTheElementToBeClickable(WebDriver driver,
-			String xpath) {
-
-		WebElement locatedElement;
-
-		WebDriverWait wait = new WebDriverWait(driver, 30);
-
-		locatedElement = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath)));
-
-		return locatedElement;
-	}
-
-	/**
-	 * Waits till the element is present in the dom
-	 * 
-	 * @param driver
-	 *            - To perform wait operation on the browser
-	 * @param Xpath
-	 *            - Xpath of the elemnt for which wait is performed
-	 * @return - returns WebElement
-	 */
-	public WebElement explicitWaitByPresenceofElement(WebDriver driver,
-			String Xpath) {
-
-		WebElement locatedElement;
-
-		WebDriverWait wait = new WebDriverWait(driver, 30);
-
-		locatedElement = wait.until(ExpectedConditions
-				.presenceOfElementLocated(By.xpath(Xpath)));
-		
-		return locatedElement;
-	}
-
-	/**
-	 * Waits for the list of elemnts till they are visible
-	 * 
-	 * @param driver
-	 *            - performs wiat operation
-	 * @param elements
-	 *            - List of elements for which wait is performed
-	 * @return - returns list of WebElements
-	 */
-	public List<WebElement> explicitWaitByVisibilityOfAllElements(
-			WebDriver driver, List<WebElement> elements) {
-
-		List<WebElement> locatedElements;
-
-		WebDriverWait wait = new WebDriverWait(driver, 30);
-
-		locatedElements = wait.until(ExpectedConditions
-				.visibilityOfAllElements(elements));
-
-		return locatedElements;
-	}
-
-	/**
-	 * Performs the click operation through Action class
-	 * 
-	 * @param element
-	 *            - the element on which click operation needs to be performed
-	 * @param driver
-	 *            - To perform operations on the browser
-	 */
-	public void moveToClickableElement(WebElement element, WebDriver driver) {
-		Actions actions = new Actions(driver);
-		actions.moveToElement(element);
-		actions.click();
-		actions.build().perform();
-	}
-	
-	/**
-	 * Performs horizontal operation till particular element
-	 * @param driver - performs operation on browser
-	 * @param element 
-	 */
-	public void horizontalScroll(WebDriver driver,WebElement element){
-		JavascriptExecutor jse = (JavascriptExecutor) driver;     
-		jse.executeScript("arguments[0].scrollIntoView(true);",element);
-	}
-
-	/**
-	 * Performs the mouseover operation
-	 * 
-	 * @param element
-	 *            - the element on which mouseover is done
-	 * @param driver
-	 *            - To perform operations on browser
-	 */
-	public void mouseOver(WebElement element, WebDriver driver) {
-		Actions actions = new Actions(driver);
-		actions.moveToElement(element);
-
-		actions.build().perform();
-	}
-
-	/**
-	 * To click on particular element in the list
-	 * 
-	 * @param element
-	 *            - the list of elements on which click is performed
-	 * @param buttonName
-	 *            - the name of the button,link or option in the dropdow to be
-	 *            clicked
-	 * @param logger
-	 *            - to log the operation
-	 * @param driver
-	 *            - to perform operations on browser
-	 * @throws InterruptedException
-	 */
-	public void clickButtonOrLink(List<WebElement> element, String buttonName,
-			ExtentTest logger, WebDriver driver) throws InterruptedException {
-
-		for (WebElement dropDownElement : element) {
-
-			//System.out.println("The button name is !!!" + buttonName);
-			//System.out.println("The dropdown element is "	+ dropDownElement.getText());
-			try {
-
-				if (!dropDownElement.isDisplayed()) {
-
-					scrollDown(driver, dropDownElement);
-				}
-
-				if (dropDownElement.getText().trim()
-						.equalsIgnoreCase(buttonName.trim())
-						&& dropDownElement.isDisplayed()) {
-					
-					//this.waitUntilElementclickable(dropDownElement, driver);
-
-					moveToClickableElement(dropDownElement, driver);
-
-					break;
-				}
-			}
-
-			catch (Exception E) {
-
-				logger.log(LogStatus.FAIL, "Drop down element " + buttonName
-						+ " is not found : ");
-			}
+	public static void init() {
+		if (timestamp == null) {
+			timestamp = DateTimeFormatter.ofPattern("yyyyMMddhhmmss").format(
+					LocalDateTime.now());
 		}
 	}
-	
-	
-	public void waitForPageLoaded(WebDriver driver)
-	{
-	    ExpectedCondition<Boolean> expectation = new
-	ExpectedCondition<Boolean>() 
-	    {
-	        public Boolean apply(WebDriver driver)
-	        {
-	            return ((JavascriptExecutor)driver).executeScript("return document.readyState").equals("complete");
-	        }
-	    };
 
-	    
+	/**
+	 * 
+	 * @param json Json response to save
+	 * @param testClassName Name of the test class
+	 * @param testCaseName Name of the test case
+	 * @param appendToFile Save response string to file? true/false
+	 * @throws IOException IOException
+	 */
+	public static synchronized void saveJsonResponse(String json,
+			String testClassName, String testCaseName, boolean appendToFile)
+			throws IOException {
+		appendToJsonFile(json, testClassName, testCaseName, "Responses");
 	}
 
 	/**
-	 * Performs scroll down operation
+	 * Get JSON request object as String using a json template. The key-value pairs in the dataMap will be used to find the key as a keyword in the template and replace it with the value in the map for that key.
 	 * 
-	 * @param driver
-	 *            - to perform operations on browser
-	 * @param element
-	 *            - Scroll down will be performed till the element
+	 * @param templateJsonFilePath Template file path
+	 * @param dataMap HashMap with key-value pairs where key = keyword in the template that needs to be replaced and value = the actual value that the keyword needs to be replaced with.
+	 * @param testClassName Test class name
+	 * @param testCaseName Test case name
+	 * @param appendToFile Save response string to file? true/false
+	 * @return Json as a string
+	 * @throws IOException IOException
 	 */
-	public void scrollDown(WebDriver driver, WebElement element) {
+	public static synchronized String getJsonRequestAsString(
+			String templateJsonFilePath,
+			Map<String, String> dataMap, 
+			String testClassName,
+			String testCaseName,
+			boolean appendToFile
+			) throws IOException {
+		String json = new String(Files.readAllBytes(Paths
+				.get(templateJsonFilePath)));
 
-		JavascriptExecutor executor = (JavascriptExecutor) driver;
-
-		executor.executeScript("arguments[0].scrollIntoView();", element);
-
-	}
-
-	/**
-	 * Performs scroll up
-	 * 
-	 * @param driver
-	 *            - to perform operations on browser
-	 */
-	public void scrollUp(WebDriver driver) {
-
-		// WebElement element = driver.findElement(By.tagName("header"));
-		JavascriptExecutor executor = (JavascriptExecutor) driver;
-
-		executor.executeScript("window.scrollTo(0, -document.body.scrollHeight);");
-
-	}
-
-	/**
-	 * Performs click operation
-	 * 
-	 * @param driver
-	 *            - to perform operations on browser
-	 * @param element
-	 *            - the element which is to be clicked
-	 */
-	public void javaScriptExecutorToClickElement(WebDriver driver,
-			WebElement element) {
-
-		JavascriptExecutor jse2 = (JavascriptExecutor) driver;
-		jse2.executeScript("arguments[0].scrollIntoView()", element);
-	}
-
-	/**
-	 * Performs wait till the element is invisible for particular tim period
-	 * 
-	 * @param driver
-	 *            - to perform operation on browser
-	 * @param Xpath
-	 *            - the xpath of element for which wait is performed
-	 */
-	public void explicitwaitByinvisibilityOfElementLocated(WebDriver driver,
-			String Xpath) {
-
-		WebDriverWait wait = new WebDriverWait(driver, 30);
-
-		wait.until(ExpectedConditions.invisibilityOfElementLocated(By
-				.xpath(Xpath)));
-
-	}
-
-	/**
-	 * Uploads the file using Robot class
-	 * 
-	 * @param docPath
-	 *            - document path
-	 */
-	public void uploadFileWithRobot(String docPath) {
-		StringSelection stringSelection = new StringSelection(docPath);
-		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-		clipboard.setContents(stringSelection, null);
-		System.out.println("The document path is " + docPath);
-		Robot robot = null;
-
-		try {
-			robot = new Robot();
-		} catch (AWTException e) {
-			e.printStackTrace();
+		for (String key : dataMap.keySet()) {
+			json = json.replace(key, dataMap.get(key).toString());
 		}
 
-		robot.delay(250);
-		robot.keyPress(KeyEvent.VK_ENTER);
-		robot.keyRelease(KeyEvent.VK_ENTER);
-		robot.keyPress(KeyEvent.VK_CONTROL);
-		robot.keyPress(KeyEvent.VK_V);
-		robot.keyRelease(KeyEvent.VK_V);
-		robot.keyRelease(KeyEvent.VK_CONTROL);
-		robot.keyPress(KeyEvent.VK_ENTER);
-		robot.delay(150);
-		robot.keyRelease(KeyEvent.VK_ENTER);
-	}
-
-	/**
-	 * Downloads the file to a particular path(This is applicable to Auth Accel)
-	 * 
-	 * @param docPath
-	 *            - document path
-	 */
-	public void downloadFileWithRobot(String docPath) {
-
-		StringSelection stringSelection = new StringSelection(docPath);
-		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-		clipboard.setContents(stringSelection, null);
-
-		Robot robot = null;
-
-		try {
-			robot = new Robot();
-		} catch (AWTException e) {
-			e.printStackTrace();
+		if (appendToFile) {
+			appendToJsonFile(json, testClassName, testCaseName, "Requests");
 		}
 
-		robot.delay(250);
+		return json;
+	}
 
-		robot.keyPress(KeyEvent.VK_CONTROL);
-		robot.keyPress(KeyEvent.VK_V);
-		robot.keyRelease(KeyEvent.VK_V);
-		robot.keyRelease(KeyEvent.VK_CONTROL);
-		robot.keyPress(KeyEvent.VK_ENTER);
-		robot.delay(150);
-		robot.keyRelease(KeyEvent.VK_ENTER);
+	/**
+	 * Get JSON request object as String using a json template. The findString is the keyword in the template that needs to be replaced with the replaceString to generated the request json.
+	 * 
+	 * @param templateJsonFilePath Template file path
+	 * @param findString Keyword listed in the template that needs to be replaced
+	 * @param replaceString Value that the keyword needs to be replaced with
+	 * @param testClassName Test class name
+	 * @param testCaseName Test case name
+	 * @param appendToFile Save response string to file? true/false
+	 * @return Json as a string
+	 * @throws IOException IOException
+	 */
+	public static synchronized String getJsonRequestAsString(
+			String templateJsonFilePath, String findString,
+			String replaceString, String testClassName, String testCaseName,
+			boolean appendToFile) throws IOException {
+		String json = new String(Files.readAllBytes(Paths
+				.get(templateJsonFilePath)));
+		if (replaceString != null) {
+			json = json.replace(findString, replaceString);
+		}
+
+		if (appendToFile) {
+			appendToJsonFile(json, testClassName, testCaseName, "Requests");
+		}
+		return json;
+	}
+
+	/**
+	 * Append request or response json to a generated json file
+	 * 
+	 * @param json Json as a string that needs to be saved
+	 * @param testClassName Test class name
+	 * @param testCaseName Test case name
+	 * @param type Type: request or response
+	 * @throws IOException IOException
+	 */
+	public static synchronized void appendToJsonFile(String json,
+			String testClassName, String testCaseName, String type)
+			throws IOException {
+		init();
+		boolean isNew = false;
+		File directory = new File("src/test/resources/generated/");
+		if (!directory.exists()) {
+			directory.mkdirs();
+		}
+		File file = new File("src/test/resources/generated/" + testClassName
+				+ "_" + type + "_" + timestamp + ".json");
+		if (!file.exists()) {
+			file.createNewFile();
+			isNew = true;
+		}
+
+		BufferedWriter writer = new BufferedWriter(new FileWriter(
+				"src/test/resources/generated/" + testClassName + "_" + type
+						+ "_" + timestamp + ".json", true));
+		if (isNew) {
+			writer.append("{ \"data\": [");
+		} else {
+			writer.append(", ");
+		}
+		writer.append("{ \"id\": \"" + testCaseName
+				+ "\", \"generated" + type + "\": " + json + "}");
+		writer.close();
+	}
+
+	/**
+	 * Close the json file
+	 * 
+	 * @param testClassName Test class name
+	 * @param type Type: request or response
+	 * @throws IOException IOException
+	 */
+	public static synchronized void closeJsonFile(String testClassName,
+			String type) throws IOException {
+		BufferedWriter writer = new BufferedWriter(new FileWriter(
+				"src/test/resources/generated/" + testClassName + "_" + type
+						+ ".json", true));
+		writer.append("]}");
+		writer.close();
 
 	}
 
 	/**
-	 * Copies the text from a text box and store it into string
+	 * Get content of json file as String
 	 * 
-	 * @param element
-	 *            - the textbox from which text needs to be copied
-	 * @return - returns string
-	 * @throws Exception
+	 * @param jsonPath
+	 *            Json file path
+	 * @return json as String
 	 * @throws IOException
+	 *             IOException
 	 */
-	public String copyTextFromTextBox(WebElement element) throws Exception,
-			IOException {
-
-		element.sendKeys(Keys.CONTROL + "a");
-		Thread.sleep(5000);
-		element.sendKeys(Keys.chord(Keys.CONTROL, "c"));
-		Thread.sleep(5000);
-
-		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-		Transferable contents = clipboard.getContents(null);
-		String copiedString = (String) contents
-				.getTransferData(DataFlavor.stringFlavor);
-		return copiedString;
-
+	public static synchronized String getJsonAsString(String jsonPath)
+			throws IOException {
+		return new String(Files.readAllBytes(Paths.get(jsonPath)));
 	}
 
 	/**
-	 * Performs wait operation atleast one elemnt in the list is present in the
-	 * DOM
+	 * Create a json file required for testing using a json template
 	 * 
-	 * @param driver
-	 *            - To perform operation on browser
-	 * @param Xpath
-	 *            - The xpath of the list of elements
-	 * @return - returns list of WebElements
+	 * @param templateJsonFilePath
+	 *            Template JSON file path
+	 * @param requiredJsonFilePath
+	 *            Required JSON file path
+	 * @param findString
+	 *            Keyword to find in json
+	 * @param replaceString
+	 *            String to replace the keyword
+	 * @throws IOException
+	 *             IOException
 	 */
-	public List<WebElement> explicitWaitByPresenceofAllElements(
-			WebDriver driver, String Xpath) {
-		List<WebElement> locatedElement;
+	public static synchronized void createJsonRequestFromTemplate(
+			String templateJsonFilePath, String requiredJsonFilePath,
+			String findString, String replaceString) throws IOException {
+		String templateJson = new String(Files.readAllBytes(Paths
+				.get(templateJsonFilePath)));
+		if (replaceString != null) {
+			templateJson = templateJson.replace(findString, replaceString);
+		}
+		System.out.println(requiredJsonFilePath);
 
-		WebDriverWait wait = new WebDriverWait(driver, 30);
-
-		locatedElement = wait.until(ExpectedConditions
-				.presenceOfAllElementsLocatedBy(By.xpath(Xpath)));
-		
-
-		return locatedElement;
+		BufferedWriter writer = Files.newBufferedWriter(Paths
+				.get(requiredJsonFilePath));
+		writer.write(templateJson);
+		writer.close();
 	}
 
-	
 	/**
-	 * To click on particular element in the list
+	 * Converts a resultset to json array
 	 * 
-	 * @param element
-	 *            - the list of elements on which click is performed
-	 * @param buttonName
-	 *            - the name of the button,link or option in the dropdow to be
-	 *            clicked
-	 * @param logger
-	 *            - to log the operation
-	 * @param driver
-	 *            - to perform operations on browser
-	 * @throws InterruptedException
+	 * @param resultSet
+	 *            Resultset
+	 * @return JSON array of resultset
+	 * @throws Exception
+	 *             Exception
 	 */
-	public void selectDropdownValueByVisibleText(WebElement element, String dropdownValue,
-			ExtentTest logger, WebDriver driver) throws InterruptedException {
+	public static JSONArray convertToJSONArray(ResultSet resultSet)
+			throws Exception {
+		JSONArray jsonArray = new JSONArray();
+		while (resultSet.next()) {
+			int total_rows = resultSet.getMetaData().getColumnCount();
+			for (int i = 0; i < total_rows; i++) {
+				JSONObject obj = new JSONObject();
+				obj.put(resultSet.getMetaData().getColumnLabel(i + 1),
+						resultSet.getObject(i + 1));
+				jsonArray.put(obj);
+			}
+		}
+		return jsonArray;
+	}
 
-			try {
+	/**
+	 * Create a json file required for testing using json template
+	 * 
+	 * @param templateJsonFilePath
+	 *            Template JSON file path
+	 * @param requiredJsonFilePath
+	 *            Required JSON file path
+	 * @param dataMap
+	 *            Test data map
+	 * @throws IOException
+	 *             IOException
+	 */
+	public static synchronized void createJsonRequestFromTemplate(
+			String templateJsonFilePath, String requiredJsonFilePath,
+			Map<String, String> dataMap) throws IOException {
+		String json = new String(Files.readAllBytes(Paths
+				.get(templateJsonFilePath)));
 
-				if (!element.isDisplayed()) {
+		for (String key : dataMap.keySet()) {
+			json = json.replace(key, dataMap.get(key).toString());
+		}
+		System.out.println(requiredJsonFilePath);
 
-					scrollDown(driver, element);
+		BufferedWriter writer = Files.newBufferedWriter(Paths
+				.get(requiredJsonFilePath));
+		writer.write(json);
+		writer.close();
+	}
+
+	/**
+	 * This Method will take JsonElement and response key or value(String obj)
+	 * and will check if given response key or response key value is present in
+	 * the given JsonELement. if yes, it will retun boolean value as TRUE else
+	 * FALSE
+	 * 
+	 * @param jsonPath
+	 *            JSON file path
+	 * @param keyOrValue
+	 *            Key or value to search for
+	 * @return boolean value
+	 */
+	public static boolean isElementOrValuePresentInJsonResponse(
+			JsonElement jsonPath, String keyOrValue) {
+		boolean result = false;
+
+		// Check whether jsonElement is JsonObject or not
+		if (jsonPath.isJsonObject()) {
+			Set<Entry<String, JsonElement>> setJsonObjectWithElements = ((JsonObject) jsonPath)
+					.entrySet();
+			// System.out.println(setJsonObjectWithElements);
+			if (setJsonObjectWithElements != null) {
+				// Iterate JSON Elements with Key values
+				for (Entry<String, JsonElement> jsonElementInTheSet : setJsonObjectWithElements) {
+					// System.out.println("Inside for loop");
+					// System.out.println(en.getKey() + " : ");
+					String key = jsonElementInTheSet.getKey();
+					sbJsonElementInGivenJsonObject.append(key);
+					isElementOrValuePresentInJsonResponse(
+							jsonElementInTheSet.getValue(), keyOrValue);
 				}
-				Select oSelect = new Select(element);
-   	        	oSelect.selectByVisibleText(dropdownValue);
-   	        	logger.log(LogStatus.INFO, " Selected element value as '" + dropdownValue + "' in the dropdown");
-				
+
 			}
 
-			catch (Exception E) {
+			sbJsonElementInGivenJsonResponse = sbJsonElementInGivenJsonResponse
+					.append(sbJsonElementInGivenJsonObject);
+			// System.out.println("String Builder: "+sbJsonElementInGivenJsonResponse);
+			if (sbJsonElementInGivenJsonResponse.toString()
+					.contains(keyOrValue)) {
+				result = true;
+			}
+		}
 
-				logger.log(LogStatus.FAIL, "Drop down element " + dropdownValue + " is not found : ");
+		// Check whether jsonElement is Arrary or not
+		else if (jsonPath.isJsonArray()) {
+			JsonArray jarr = jsonPath.getAsJsonArray();
+			// Iterate JSON Array to JSON Elements
+			for (JsonElement je : jarr) {
+				isElementOrValuePresentInJsonResponse(je, keyOrValue);
 			}
+		}
+
+		// Check whether jsonElement is NULL or not
+		else if (jsonPath.isJsonNull()) {
+			// print null
+			// System.out.println("json value is null");
+		}
+		// Check whether jsonElement is Primitive or not
+		else if (jsonPath.isJsonPrimitive()) {
+			// print value as String
+			// System.out.println("Primitive: " + jsonElement.getAsString());
+			String value = jsonPath.getAsString();
+			sbJsonValueInGivenJsonResponse.append(value);
+			// System.out.println(sbJsonValueInGivenJsonResponse);
+
+		}
+
+		if (sbJsonValueInGivenJsonResponse.toString().contains(keyOrValue)) {
+			result = true;
+			// System.out.println(a);
+		}
+		return result;
 	}
-	
-	/**
-	 * @param element
-	 * @param logger
-	 * @param driver
-	 * @throws InterruptedException
-	 */
-	public void elementClickWithLogger(WebElement element, 
-			ExtentTest logger, WebDriver driver) throws InterruptedException {
-			try {
-				element.click();
-   	        	logger.log(LogStatus.PASS, " Clicked on " + element + " element ");
-			}
-			catch (Exception E) {
-				logger.log(LogStatus.FAIL, " Failed to click on " + element + " element ");
-			}
-	}
-	
-	public void sendKeysWithLogger(WebElement element, String strValue,
-			ExtentTest logger, WebDriver driver) throws InterruptedException {
-			try {
-				element.sendKeys(strValue.toString());
-   	        	logger.log(LogStatus.PASS, " Clicked on " + element + " element ");
-			}
-			catch (Exception E) {
-				logger.log(LogStatus.FAIL, " Failed to click on " + element + " element ");
-			}
-	}
-	
-	
-	
-	
+
 }
